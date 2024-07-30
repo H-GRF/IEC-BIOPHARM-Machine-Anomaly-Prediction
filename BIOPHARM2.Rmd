@@ -1,0 +1,193 @@
+---
+title: "bio"
+author: "Hamza Gouaref"
+date: "2024-05-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(highcharter)
+library(themis)
+library(finetune)
+```
+
+
+```{r}
+train_data<-read.csv("train_BIOPHARM.csv")
+test_data <- read.csv("test_BIOPHARM.csv")
+sub <- read.csv("Sample_submission_BIOPHARM.csv")
+```
+
+
+```{r}
+
+```
+```{r}
+write.csv(train_data,"best_data.csv")
+```
+
+
+```{r}
+train <-rec  %>% bake(train_data)
+test <-rec_smote  %>% bake(test_data)
+
+```
+
+
+```{r}
+    train_data %>% count(Event.type
+)  %>% arrange(-n)
+
+```
+
+```{r}
+
+
+#train_data<-read.csv("balanc.csv")
+#train_data <- train_data %>% as.data.frame()
+# Replace spaces with the mode value
+train_data <- train_data %>%
+  mutate(Ancienne.valeur= ifelse(Ancienne.valeur== "", "Marche", Ancienne.valeur)) %>%
+  mutate(Ancienne.valeur= ifelse(Ancienne.valeur== "-", "Marche", Ancienne.valeur))
+
+###########################################
+mode_value <- train_data %>% 
+      filter(Event.type!= "") %>%   # Exclude empty values
+  count(Event.type) %>% 
+  slice(which.max(n)) %>%  # Find the most frequent value
+  pull(Event.type)
+
+# Replace spaces with the mode value
+train_data <- train_data %>%
+    mutate(Event.type= ifelse(Event.type== "-", "", Event.type)) %>% 
+    mutate(Event.type= ifelse(Event.type== "", "NA", Event.type))
+#########################################################3
+
+mode_value <- train_data %>% 
+      filter(Nouvelle.valeur!= "") %>%   # Exclude empty values
+  count(Nouvelle.valeur) %>% 
+  slice(which.max(n)) %>%  # Find the most frequent value
+  pull(Nouvelle.valeur)
+
+# Replace spaces with the mode value
+train_data <- train_data %>%
+  mutate(Nouvelle.valeur= ifelse(Nouvelle.valeur== "-", mode_value, Nouvelle.valeur))%>%
+  mutate(Nouvelle.valeur= ifelse(Nouvelle.valeur== "", mode_value, Nouvelle.valeur))
+
+###############################################################
+
+mode_value <- train_data %>% 
+      filter(Valeur!= "") %>%   # Exclude empty values
+  count(Valeur) %>% 
+  slice(which.max(n)) %>%  # Find the most frequent value
+  pull(Valeur)
+
+# Replace spaces with the mode value
+train_data <- train_data %>%
+  mutate(Valeur= ifelse(Valeur== "", mode_value, Valeur))%>%
+  mutate(Valeur= ifelse(Valeur== "-", mode_value, Valeur))
+
+#############################################################
+
+```
+
+```{r}
+train_data <- subset(train_data, !grepl("NA", Event.type))
+train_data <- train_data %>% recipe(Event.type~.) %>% step_upsample(Event.type) %>% prep() %>% juice()
+
+```
+
+```{r}
+
+# Replace spaces with the mode value
+test_data <- test_data %>%
+  mutate(Ancienne.valeur= ifelse(Ancienne.valeur== "", "Marche", Ancienne.valeur))%>%
+  mutate(Ancienne.valeur= ifelse(Ancienne.valeur== "-", "Marche", Ancienne.valeur))
+
+
+###########################################
+
+mode_value <- test_data %>% 
+      filter(Nouvelle.valeur!= "") %>%   # Exclude empty values
+  count(Nouvelle.valeur) %>% 
+  slice(which.max(n)) %>%  # Find the most frequent value
+  pull(Nouvelle.valeur)
+
+# Replace spaces with the mode value
+test_data <- test_data %>%
+  mutate(Nouvelle.valeur= ifelse(Nouvelle.valeur== "", "Marche", Nouvelle.valeur))%>%
+  mutate(Nouvelle.valeur= ifelse(Nouvelle.valeur== "-", "Marche", Nouvelle.valeur))
+
+
+###############################################################
+
+mode_value <- test_data %>% 
+      filter(Valeur!= "") %>%   # Exclude empty values
+  count(Valeur) %>% 
+  slice(which.max(n)) %>%  # Find the most frequent value
+  pull(Valeur)
+
+# Replace spaces with the mode value
+test_data <- test_data %>%
+  mutate(Valeur= ifelse(Valeur== "", "Marche", Valeur)) %>%
+  mutate(Valeur= ifelse(Valeur== "-", "Marche", Valeur))
+
+#############################################################
+train_data$combined <- paste(train_data$Index,train_data$Lieu,train_data$Nouvelle.valeur, train_data$Valeur,train_data$Ancienne.valeur,train_data$Date, sep = " ")
+test_data$combined <- paste(test_data$Index,test_data$Lieu,test_data$Nouvelle.valeur, test_data$Valeur,test_data$Ancienne.valeur,test_data$Date, sep = " ")
+
+train_data <- train_data %>% select(-c(Index,Lieu,Valeur,Nouvelle.valeur,Ancienne.valeur))
+test_data <- test_data %>% select(-c(Index,Lieu,Valeur,Nouvelle.valeur,Ancienne.valeur))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
