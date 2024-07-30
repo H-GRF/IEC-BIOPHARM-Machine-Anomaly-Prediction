@@ -4,8 +4,6 @@
 
 ## CHALLENGE-BIOPHARM: Predicting Anomalies in Machine Logs
 
-### Late Submission
-
 ## Overview
 
 ### Start
@@ -14,8 +12,6 @@
 ### Close
 - May 11, 2024
 
-### Weight
-- 1.5
 
 ## Description
 
